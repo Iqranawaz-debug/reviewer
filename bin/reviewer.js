@@ -9,6 +9,7 @@ const { homeRelative } = require('../lib/paths');
 const { openInBrowser } = require('../lib/browser');
 const { formatPrompt } = require('../lib/agent');
 const { ReviewOwnershipError } = require('../lib/store');
+const { readReviewStatus } = require('../lib/status');
 const { reviewsDir, adoptLegacyReviews } = require('../lib/paths');
 const { repoRoot } = require('../lib/repo');
 const {
@@ -165,6 +166,54 @@ async function main() {
   if (options.command === 'export') {
     return exportReview(options);
   }
+  if (options.command === 'status') {
+  const given = options.repoPath ?? process.cwd();
+  const repoPath = (await repoRoot(given)) ?? given;
+
+  const status = await readReviewStatus(reviewsDir(), repoPath);
+
+  if (options.json) {
+    process.stdout.write(`${JSON.stringify(status)}\n`);
+  } else if (!status.saved) {
+    process.stdout.write(`${repoPath}: No review saved yet\n`);
+  } else {
+const state = status.submitted
+  ? 'submitted'
+  : 'not submitted since last save';
+
+const lastSaved = status.lastUpdated
+  ? `last saved ${status.lastUpdated}`
+  : 'save time unknown';
+
+let scope = status.mode ?? 'unknown';
+
+if (status.mode === 'range' && status.range) {
+  const range = status.range;
+
+  if (range.kind === 'commits') {
+    const first = range.first ?? '?';
+    const last = range.last ?? '?';
+    scope = `reviewing commits ${first} → ${last}`;
+  } else {
+    const from = range.baseName ?? range.base ?? '?';
+    const to = range.headName ?? range.head ?? '?';
+    scope = `reviewing ${from} → ${to}`;
+  }
+
+  if (Number.isInteger(range.commits)) {
+    scope += `, ${range.commits} commit${range.commits === 1 ? '' : 's'}`;
+  }
+}
+
+process.stdout.write(
+  `${repoPath}: ${status.comments} comments on ${status.files} files, ` +
+  `${lastSaved}, ${state}\n  ${scope}\n`
+);
+
+  }
+
+  return;
+}
 
   const repoPath = await repositoryToOpen(options.repoPath);
 

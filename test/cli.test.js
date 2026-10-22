@@ -231,3 +231,31 @@ test('usage is written in terms of the name it is given', () => {
 test('usage says why --help under git opens a man page', () => {
   assert.match(USAGE, /git reviewer --help opens the\s+manual page/);
 });
+
+test('parseArgs recognises status as a subcommand', () => {
+  const options = parseArgs(['status']);
+
+  assert.equal(options.command, 'status');
+  assert.equal(options.json, false);
+});
+
+test('parseArgs accepts --json for status', () => {
+  const options = parseArgs(['status', '--json']);
+
+  assert.equal(options.command, 'status');
+  assert.equal(options.json, true);
+});
+
+test('parseArgs keeps export and status separate', () => {
+  const exportOptions = parseArgs(['export']);
+
+  assert.equal(exportOptions.command, 'export');
+  assert.equal(exportOptions.json, false);
+});
+
+test('parseArgs rejects status-only --json outside status', () => {
+  assert.throws(
+    () => parseArgs(['export', '--json']),
+    UsageError
+  );
+});

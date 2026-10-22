@@ -72,6 +72,7 @@ comment they answer, and everything is saved as you type.
 ```
 git reviewer [repository] [options]
 git reviewer export [repository] [--format json|prompt]
+git reviewer status [repository] [--json]
 
   repository        A git repository, or any directory inside one
                     (default: the current directory)
@@ -85,6 +86,31 @@ git reviewer export [repository] [--format json|prompt]
   -h, --help        Show help
   -v, --version     Show the version
 ```
+
+### Check review status
+
+Check whether a review has been saved or submitted without opening the browser:
+
+```bash
+git reviewer status
+git reviewer status .
+git reviewer status --json
+```
+
+`status` shows the number of comments, affected files, and submission state.
+
+Use `--json` to get machine-readable information, including:
+
+- `repository` — repository path
+- `saved` — whether a saved review exists
+- `comments` — number of saved comments
+- `files` — number of files with comments
+- `lastUpdated` — when comments were last saved
+- `submitted` — whether the latest submission is newer than the last save
+- `lastSubmitted` — timestamp of the latest submission
+- `mode` and `range` — the saved review scope
+
+If no review is saved, the command reports that normally and exits with code `0`.
 
 ```bash
 git reviewer                # review the repository you are standing in
@@ -279,7 +305,7 @@ tool holds.
 - **`review_<repo>_<timestamp>.txt`** — a submitted review, rendered from that
   JSON as Markdown, grouped by file and ordered by line:
 
-````markdown
+```markdown
 # Code Review
 
 Repository: /work/my-app
@@ -296,7 +322,7 @@ This trusts the header without checking the scheme.
 
 **Follow-ups:**
   1. Still open after the rebase (2026-08-10T14:02:11.000Z)
-````
+```
 
 Timestamps are ISO 8601 rather than a locale format on purpose: a review gets
 committed, pasted into a pull request, and read on someone else's machine, so
