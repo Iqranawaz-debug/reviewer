@@ -187,7 +187,7 @@ test('buildUrl encodes characters that would otherwise split the query', () => {
 });
 
 test('the usage text documents every option the parser accepts', () => {
-  for (const flag of ['--port', '--no-open', '--no-intro', '--staged', '--file', '--help', '--version']) {
+  for (const flag of ['--port', '--no-open', '--no-intro', '--staged', '--json', '--file', '--help', '--version']) {
     assert.ok(USAGE.includes(flag), `usage should mention ${flag}`);
   }
 });
@@ -253,9 +253,28 @@ test('parseArgs keeps export and status separate', () => {
   assert.equal(exportOptions.json, false);
 });
 
-test('parseArgs rejects status-only --json outside status', () => {
+test('parseArgs rejects --json for export', () => {
   assert.throws(
     () => parseArgs(['export', '--json']),
     UsageError
   );
+});
+test('parseArgs accepts --json when serving', () => {
+  const options = parseArgs(['--json']);
+
+  assert.equal(options.command, 'serve');
+  assert.equal(options.json, true);
+});
+
+test('parseArgs accepts --json for status with a repository', () => {
+  const options = parseArgs(['status', '.', '--json']);
+
+  assert.equal(options.command, 'status');
+  assert.equal(options.json, true);
+});
+
+test('usage documents status and both JSON contexts', () => {
+  assert.match(USAGE, /status \[repository\] \[--json\]/);
+  assert.match(USAGE, /JSON startup info for serving/);
+  assert.match(USAGE, /JSON review status/);
 });
